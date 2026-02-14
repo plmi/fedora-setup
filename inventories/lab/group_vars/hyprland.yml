@@ -1,0 +1,30 @@
+---
+hyprland_enable_copr: true
+hyprland_copr_repo: solopasha/hyprland
+hyprland_copr_repo_file: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:solopasha:hyprland.repo
+
+hyprland_packages:
+  - hyprland
+  - waybar
+  - wofi
+  - SwayNotificationCenter
+  - hyprlock
+  - hypridle
+  - grim
+  - slurp
+  - swappy
+  - xdg-desktop-portal
+  - xdg-desktop-portal-hyprland
+  - lxqt-policykit
+  - network-manager-applet
+  - pipewire
+  - wireplumber
+  - pavucontrol
+  - brightnessctl
+  - playerctl
+  - fontawesome-fonts-all
+
+hyprland_polkit_agent_command: /usr/bin/lxqt-policykit-agent
+hyprland_terminal: foot
+hyprland_launcher: wofi --show drun
+hyprland_screenshot_cmd: grim -g "$(slurp)" - | swappy -f -

@@ -1,0 +1,10 @@
+---
+ansible_python_interpreter: /usr/bin/python3
+
+# Choose one SSH auth method for first bootstrap:
+# 1) Key-based (recommended):
+# ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+#
+# 2) Password-based (avoid committing secrets):
+#ansible_password: "{{ vault_fedora43_ssh_password }}"
+#ansible_become_password: "{{ vault_fedora43_sudo_password }}"

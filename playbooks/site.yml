@@ -1,0 +1,3 @@
+---
+- import_playbook: workstation.yml
+- import_playbook: pentest.yml

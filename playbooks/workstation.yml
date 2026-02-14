@@ -1,0 +1,14 @@
+---
+- name: Configure Fedora workstation
+  hosts: fedora_workstation
+  become: true
+  roles:
+    - role: common_base
+      tags: [base]
+    - role: user_accounts
+      tags: [user]
+    - role: terminal_shell
+      tags: [shell]
+    - role: hyprland_desktop
+      when: hyprland_enable | bool
+      tags: [hyprland]

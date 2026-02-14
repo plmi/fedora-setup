@@ -1,0 +1,53 @@
+# Minimal Hyprland config for OSCP practice
+monitor=,preferred,auto,1
+
+exec-once = waybar
+exec-once = swaync
+exec-once = nm-applet --indicator
+exec-once = {{ hyprland_polkit_agent_command }}
+
+input {
+    kb_layout = us
+    follow_mouse = 1
+    touchpad {
+        natural_scroll = false
+    }
+    sensitivity = 0
+}
+
+general {
+    gaps_in = 4
+    gaps_out = 8
+    border_size = 2
+    layout = dwindle
+}
+
+decoration {
+    rounding = 4
+    blur {
+        enabled = false
+    }
+}
+
+animations {
+    enabled = true
+}
+
+$mainMod = SUPER
+
+bind = $mainMod, RETURN, exec, {{ hyprland_terminal }}
+bind = $mainMod, D, exec, {{ hyprland_launcher }}
+bind = $mainMod SHIFT, S, exec, {{ hyprland_screenshot_cmd }}
+bind = $mainMod, Q, killactive,
+bind = $mainMod SHIFT, E, exit,
+bind = $mainMod, F, fullscreen,
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, L, exec, hyprlock
+
+bind = $mainMod, h, movefocus, l
+bind = $mainMod, l, movefocus, r
+bind = $mainMod, k, movefocus, u
+bind = $mainMod, j, movefocus, d
+
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow

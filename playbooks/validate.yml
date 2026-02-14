@@ -1,0 +1,7 @@
+---
+- name: Validate workstation and tooling
+  hosts: fedora_workstation
+  become: true
+  roles:
+    - role: validate
+      tags: [validate]

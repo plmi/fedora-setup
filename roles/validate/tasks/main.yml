@@ -1,0 +1,80 @@
+---
+- name: Validate Fedora version
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["distribution"] == 'Fedora'
+      - ansible_facts["distribution_major_version"] | int >= 43
+    fail_msg: "This role targets Fedora 43 or newer."
+
+- name: Check required binaries
+  ansible.builtin.command: "bash -lc 'command -v {{ item }}'"
+  changed_when: false
+  loop:
+    - hyprland
+    - foot
+    - zsh
+    - tmux
+    - nvim
+    - grim
+    - slurp
+    - swappy
+    - nmap
+    - feroxbuster
+    - nikto
+    - sqlmap
+    - wpscan
+    - searchsploit
+    - burp
+
+- name: Check impacket binary path (impacket-secretsdump)
+  ansible.builtin.stat:
+    path: "/home/{{ primary_user }}/.local/bin/impacket-secretsdump"
+  register: impacket_secretsdump_new
+
+- name: Check impacket binary path (secretsdump.py)
+  ansible.builtin.stat:
+    path: "/home/{{ primary_user }}/.local/bin/secretsdump.py"
+  register: impacket_secretsdump_legacy
+
+- name: Assert impacket command availability for managed user
+  ansible.builtin.assert:
+    that:
+      - impacket_secretsdump_new.stat.exists or impacket_secretsdump_legacy.stat.exists
+    fail_msg: "Impacket command not found in /home/{{ primary_user }}/.local/bin (expected impacket-secretsdump or secretsdump.py)."
+
+- name: Check metasploit command availability
+  ansible.builtin.command: "bash -lc 'command -v msfconsole'"
+  changed_when: false
+  when: metasploit_enable | bool
+
+- name: Check Kali-like SecLists path exists
+  ansible.builtin.stat:
+    path: /usr/share/seclists
+  register: seclists_path
+
+- name: Check Kali-like rockyou path exists
+  ansible.builtin.stat:
+    path: /usr/share/wordlists/rockyou.txt
+  register: rockyou_path
+
+- name: Assert Kali-like wordlist paths
+  ansible.builtin.assert:
+    that:
+      - seclists_path.stat.exists
+      - rockyou_path.stat.exists
+    fail_msg: "Expected /usr/share/seclists and /usr/share/wordlists/rockyou.txt to exist."
+
+- name: Check user exists
+  ansible.builtin.command: "id {{ primary_user }}"
+  changed_when: false
+
+- name: Check sudoers file exists
+  ansible.builtin.stat:
+    path: "/etc/sudoers.d/90-{{ primary_user }}"
+  register: sudoers_file
+
+- name: Assert sudoers file for primary user
+  ansible.builtin.assert:
+    that:
+      - sudoers_file.stat.exists
+  when: enable_passwordless_sudo | bool

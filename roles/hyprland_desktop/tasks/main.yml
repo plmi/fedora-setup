@@ -1,0 +1,78 @@
+---
+- name: Ensure dnf COPR plugin is installed
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+  when: hyprland_enable_copr | bool
+
+- name: Enable Hyprland COPR repository
+  ansible.builtin.command:
+    cmd: "dnf -y copr enable {{ hyprland_copr_repo }}"
+    creates: "{{ hyprland_copr_repo_file }}"
+  when: hyprland_enable_copr | bool
+
+- name: Install Hyprland stack
+  ansible.builtin.dnf:
+    name: "{{ hyprland_packages }}"
+    state: present
+
+- name: Ensure user config directories exist
+  ansible.builtin.file:
+    path: "/home/{{ primary_user }}/{{ item }}"
+    state: directory
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+  loop:
+    - .config/hypr
+    - .config/waybar
+    - .config/wofi
+    - .config/swappy
+
+- name: Deploy hyprland config
+  ansible.builtin.template:
+    src: hyprland.conf.j2
+    dest: "/home/{{ primary_user }}/.config/hypr/hyprland.conf"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy waybar config
+  ansible.builtin.template:
+    src: waybar.jsonc.j2
+    dest: "/home/{{ primary_user }}/.config/waybar/config.jsonc"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy waybar style
+  ansible.builtin.template:
+    src: waybar.css.j2
+    dest: "/home/{{ primary_user }}/.config/waybar/style.css"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy wofi config
+  ansible.builtin.template:
+    src: wofi/config.j2
+    dest: "/home/{{ primary_user }}/.config/wofi/config"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy wofi style
+  ansible.builtin.template:
+    src: wofi/style.css.j2
+    dest: "/home/{{ primary_user }}/.config/wofi/style.css"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy swappy config
+  ansible.builtin.template:
+    src: swappy/config.j2
+    dest: "/home/{{ primary_user }}/.config/swappy/config"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"

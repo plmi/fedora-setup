@@ -1,0 +1,175 @@
+---
+- name: Ensure shell and terminal packages are present
+  ansible.builtin.dnf:
+    name:
+      - zsh
+      - zsh-autosuggestions
+      - zsh-syntax-highlighting
+      - foot
+      - tmux
+      - neovim
+      - fzf
+      - bat
+    state: present
+
+- name: Require aarch64 for GitHub eza binary install
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["architecture"] == "aarch64"
+    fail_msg: "This eza install path is configured only for aarch64 hosts."
+
+- name: Fetch latest eza release metadata
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/eza-community/eza/releases/latest
+    method: GET
+    return_content: true
+  register: eza_latest_release
+
+- name: Set eza release facts
+  ansible.builtin.set_fact:
+    eza_release_version: "{{ eza_latest_release.json.tag_name | regex_replace('^v', '') }}"
+    eza_asset_name: "eza_aarch64-unknown-linux-gnu.tar.gz"
+    eza_asset_url: >-
+      {{
+        eza_latest_release.json.assets
+        | selectattr('name', 'equalto', 'eza_aarch64-unknown-linux-gnu.tar.gz')
+        | map(attribute='browser_download_url')
+        | list
+        | first
+      }}
+    eza_archive_path: "/tmp/eza_aarch64-unknown-linux-gnu.tar.gz"
+    eza_extract_dir: "/tmp/eza-release"
+
+- name: Ensure eza asset exists in latest release
+  ansible.builtin.assert:
+    that:
+      - eza_asset_url is defined
+      - eza_asset_url | length > 0
+    fail_msg: "Could not find eza_aarch64-unknown-linux-gnu.tar.gz in latest eza release."
+
+- name: Check currently installed eza version
+  ansible.builtin.command: "eza --version"
+  register: eza_installed_version_cmd
+  changed_when: false
+  failed_when: false
+
+- name: Parse installed eza version
+  ansible.builtin.set_fact:
+    eza_installed_version: "{{ eza_installed_version_cmd.stdout | regex_search('[0-9]+\\.[0-9]+\\.[0-9]+') | default('') }}"
+
+- name: Prepare temporary eza extraction directory
+  ansible.builtin.file:
+    path: "{{ eza_extract_dir }}"
+    state: directory
+    mode: "0755"
+  when: eza_installed_version != eza_release_version
+
+- name: Download latest eza archive
+  ansible.builtin.get_url:
+    url: "{{ eza_asset_url }}"
+    dest: "{{ eza_archive_path }}"
+    mode: "0644"
+  when: eza_installed_version != eza_release_version
+
+- name: Extract eza archive
+  ansible.builtin.unarchive:
+    src: "{{ eza_archive_path }}"
+    dest: "{{ eza_extract_dir }}"
+    remote_src: true
+  when: eza_installed_version != eza_release_version
+
+- name: Find extracted eza binary
+  ansible.builtin.find:
+    paths: "{{ eza_extract_dir }}"
+    file_type: file
+    recurse: true
+    patterns: "^eza$"
+    use_regex: true
+  register: eza_binary_candidates
+  when: eza_installed_version != eza_release_version
+
+- name: Ensure extracted eza binary is found
+  ansible.builtin.assert:
+    that:
+      - eza_binary_candidates.matched | int > 0
+    fail_msg: "eza binary not found in extracted archive."
+  when: eza_installed_version != eza_release_version
+
+- name: Install eza binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "{{ eza_binary_candidates.files[0].path }}"
+    dest: /usr/local/bin/eza
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  when: eza_installed_version != eza_release_version
+
+- name: Set default shell for primary user
+  ansible.builtin.user:
+    name: "{{ primary_user }}"
+    shell: "{{ primary_user_shell }}"
+
+- name: Install minimal .zshrc
+  ansible.builtin.copy:
+    dest: "/home/{{ primary_user }}/.zshrc"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    content: |
+      export EDITOR=nvim
+      export TERMINAL=foot
+      export PATH="$HOME/.local/bin:$PATH"
+
+      alias ll='eza -al --group-directories-first'
+      alias gs='git status -sb'
+      alias v='nvim'
+
+      if [ -f /usr/share/fzf/shell/completion.zsh ]; then
+        source /usr/share/fzf/shell/completion.zsh
+      fi
+      if [ -f /usr/share/fzf/shell/key-bindings.zsh ]; then
+        source /usr/share/fzf/shell/key-bindings.zsh
+      fi
+      if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+        source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+      fi
+      if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+        source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+      fi
+
+- name: Install baseline .tmux.conf
+  ansible.builtin.copy:
+    dest: "/home/{{ primary_user }}/.tmux.conf"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    content: |
+      set -g mouse on
+      set -g history-limit 100000
+      set -g default-terminal "screen-256color"
+      set -g base-index 1
+      setw -g pane-base-index 1
+
+- name: Ensure nvim config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ primary_user }}/.config/nvim"
+    state: directory
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+
+- name: Seed minimal nvim config
+  ansible.builtin.copy:
+    dest: "/home/{{ primary_user }}/.config/nvim/init.lua"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    content: |
+      vim.opt.number = true
+      vim.opt.relativenumber = true
+      vim.opt.expandtab = true
+      vim.opt.shiftwidth = 2
+      vim.opt.tabstop = 2
+      vim.opt.clipboard = "unnamedplus"
+      vim.g.mapleader = " "

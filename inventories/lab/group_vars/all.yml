@@ -1,0 +1,42 @@
+---
+timezone: UTC
+locale: en_US.UTF-8
+
+primary_user: michael
+primary_user_shell: /bin/zsh
+primary_user_groups:
+  - wheel
+enable_passwordless_sudo: true
+
+hyprland_enable: true
+tool_profile: oscp
+container_engine: podman
+
+enable_auto_updates: false
+enable_firewalld: true
+dangerous_tools_enabled: false
+
+base_packages:
+  - git
+  - curl
+  - wget
+  - jq
+  - ripgrep
+  - fd-find
+  - fzf
+  - bat
+  - tmux
+  - neovim
+  - zsh
+  - foot
+  - python3-pip
+  - pipx
+  - podman
+  - firewalld
+  - wl-clipboard
+  - openvpn
+  - wireguard-tools
+  - unzip
+  - tar
+  - gcc
+  - make

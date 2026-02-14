@@ -1,0 +1,32 @@
+---
+- name: Ensure primary user exists
+  ansible.builtin.user:
+    name: "{{ primary_user }}"
+    shell: "{{ primary_user_shell }}"
+    groups: "{{ primary_user_groups }}"
+    append: true
+    create_home: true
+
+- name: Configure passwordless sudo for primary user
+  ansible.builtin.template:
+    src: sudoers-primary-user.j2
+    dest: "/etc/sudoers.d/90-{{ primary_user }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"
+  when: enable_passwordless_sudo | bool
+
+- name: Ensure workspace directories exist
+  ansible.builtin.file:
+    path: "/home/{{ primary_user }}/{{ item }}"
+    state: directory
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+  loop:
+    - labs
+    - loot
+    - notes
+    - tools
+    - wordlists

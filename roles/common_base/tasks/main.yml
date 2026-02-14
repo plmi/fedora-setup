@@ -1,0 +1,25 @@
+---
+- name: Update dnf cache
+  ansible.builtin.dnf:
+    update_cache: true
+
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+
+- name: Install baseline packages
+  ansible.builtin.dnf:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Ensure firewalld is enabled and started
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+  when: enable_firewalld | bool
