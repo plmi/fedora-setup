@@ -10,6 +10,8 @@
       - neovim
       - fzf
       - bat
+      - fastfetch
+      - zoxide
     state: present
 
 - name: Require aarch64 for GitHub eza binary install
@@ -110,6 +112,34 @@
     name: "{{ primary_user }}"
     shell: "{{ primary_user_shell }}"
 
+- name: Install session-kde helper
+  ansible.builtin.copy:
+    dest: /usr/local/bin/session-kde
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/usr/bin/env sh
+      set -eu
+      conf=/etc/sddm.conf.d/00-autologin.conf
+      sudo test -f "$conf"
+      sudo sed -i 's/^Session=.*/Session=plasma.desktop/' "$conf"
+      sudo systemctl restart sddm
+
+- name: Install session-hyprland helper
+  ansible.builtin.copy:
+    dest: /usr/local/bin/session-hyprland
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/usr/bin/env sh
+      set -eu
+      conf=/etc/sddm.conf.d/00-autologin.conf
+      sudo test -f "$conf"
+      sudo sed -i 's/^Session=.*/Session=hyprland.desktop/' "$conf"
+      sudo systemctl restart sddm
+
 - name: Install minimal .zshrc
   ansible.builtin.copy:
     dest: "/home/{{ primary_user }}/.zshrc"
@@ -158,6 +188,24 @@
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0755"
+
+- name: Ensure foot config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ primary_user }}/.config/foot"
+    state: directory
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+
+- name: Install foot config with larger font
+  ansible.builtin.copy:
+    dest: "/home/{{ primary_user }}/.config/foot/foot.ini"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    content: |
+      [main]
+      font=monospace:size=15
 
 - name: Seed minimal nvim config
   ansible.builtin.copy:

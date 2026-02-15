@@ -16,6 +16,12 @@
     name: "{{ hyprland_packages }}"
     state: present
 
+- name: Ensure spice-vdagentd is enabled and running
+  ansible.builtin.systemd:
+    name: spice-vdagentd
+    enabled: true
+    state: started
+
 - name: Ensure user config directories exist
   ansible.builtin.file:
     path: "/home/{{ primary_user }}/{{ item }}"
@@ -28,6 +34,8 @@
     - .config/waybar
     - .config/wofi
     - .config/swappy
+    - .config/autostart
+    - .local/bin
 
 - name: Deploy hyprland config
   ansible.builtin.template:
@@ -73,6 +81,22 @@
   ansible.builtin.template:
     src: swappy/config.j2
     dest: "/home/{{ primary_user }}/.config/swappy/config"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy spice-vdagent launcher for Hyprland sessions
+  ansible.builtin.template:
+    src: spice-vdagent-hyprland.sh.j2
+    dest: "/home/{{ primary_user }}/.local/bin/spice-vdagent-hyprland.sh"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+
+- name: Override desktop autostart for spice-vdagent to avoid duplicate agents
+  ansible.builtin.template:
+    src: spice-vdagent.desktop.j2
+    dest: "/home/{{ primary_user }}/.config/autostart/spice-vdagent.desktop"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0644"

@@ -28,3 +28,5 @@ hyprland_polkit_agent_command: /usr/bin/lxqt-policykit-agent
 hyprland_terminal: foot
 hyprland_launcher: wofi --show drun
 hyprland_screenshot_cmd: grim -g "$(slurp)" - | swappy -f -
+hyprland_monitor_scale: 2
+hyprland_disable_qtutils_warning: true

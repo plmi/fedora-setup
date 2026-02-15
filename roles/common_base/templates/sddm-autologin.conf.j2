@@ -1,0 +1,4 @@
+[Autologin]
+User={{ sddm_autologin_user | default(primary_user) }}
+Session={{ sddm_autologin_session | default("plasma.desktop") }}
+Relogin={{ (sddm_autologin_relogin | default(false)) | ternary("true", "false") }}
