@@ -5,7 +5,7 @@
   "spacing": 4,
   "modules-left": ["hyprland/workspaces", "hyprland/window"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/vpn", "custom/target", "custom/public_ip", "network", "pulseaudio", "cpu", "memory", "temperature", "battery", "tray"],
+  "modules-right": ["custom/vpn", "custom/target", "custom/public_ip", "network", "pulseaudio", "cpu", "memory", "temperature", "battery"],
 
   "hyprland/workspaces": {
     "disable-scroll": true,
@@ -44,7 +44,7 @@
     "return-type": "json",
     "interval": 5,
     "tooltip": true,
-    "on-click": "/home/{{ primary_user }}/.config/waybar/scripts/vpn-toggle.sh"
+    "on-click": "nm-applet"
   },
 
   "custom/target": {
