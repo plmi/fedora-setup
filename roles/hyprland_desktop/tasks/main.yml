@@ -38,6 +38,7 @@
     - .config/swappy
     - .config/autostart
     - .local/bin
+    - .local/share/wallpapers
 
 - name: Ensure OSCP workspace directories exist
   ansible.builtin.file:
@@ -57,6 +58,23 @@
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0644"
+
+- name: Deploy wallpaper assets directory
+  ansible.builtin.copy:
+    src: wallpapers/
+    dest: "/home/{{ primary_user }}/.local/share/wallpapers/"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    directory_mode: "0755"
+
+- name: Deploy wallpaper mode helper
+  ansible.builtin.copy:
+    src: wallpaper.sh
+    dest: "/home/{{ primary_user }}/.local/bin/wallpaper"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
 
 - name: Deploy OSCP wofi launcher
   ansible.builtin.copy:
@@ -86,6 +104,14 @@
   ansible.builtin.copy:
     src: waybar-vpn-status.sh
     dest: "/home/{{ primary_user }}/.config/waybar/scripts/vpn-status.sh"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+
+- name: Deploy waybar VPN toggle script
+  ansible.builtin.copy:
+    src: waybar-vpn-toggle.sh
+    dest: "/home/{{ primary_user }}/.config/waybar/scripts/vpn-toggle.sh"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0755"

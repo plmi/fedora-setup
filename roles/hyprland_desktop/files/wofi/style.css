@@ -1,22 +1,43 @@
+* {
+  font-family: "JetBrainsMono Nerd Font", "FiraCode Nerd Font", monospace;
+  font-size: 15px;
+}
+
 window {
-  margin: 0px;
-  border: 1px solid #333333;
-  background-color: #1a1a1a;
-  font-size: 16px;
+  margin: 0;
+  border: 2px solid #7aa2f7;
+  border-radius: 14px;
+  background-color: #141825;
+  color: #d6deeb;
+}
+
+#outer-box {
+  margin: 12px;
 }
 
 #input {
-  margin: 6px;
-  border: 1px solid #333333;
-  color: #eeeeee;
-  background-color: #121212;
+  margin: 0 0 10px 0;
+  padding: 10px 12px;
+  border: 1px solid #3b4261;
+  border-radius: 10px;
+  background-color: #0c0f18;
+  color: #c0caf5;
+}
+
+#scroll {
+  margin: 0;
 }
 
 #entry {
-  padding: 10px;
-  color: #eeeeee;
+  margin: 2px 0;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #a9b1d6;
 }
 
 #entry:selected {
-  background-color: #2f2f2f;
+  border-color: #7aa2f7;
+  background-color: #2b3555;
+  color: #e6f1ff;
 }

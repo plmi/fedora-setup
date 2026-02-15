@@ -5,6 +5,7 @@ hyprland_copr_repo_file: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:solopa
 
 hyprland_packages:
   - hyprland
+  - hyprpaper
   - waybar
   - wofi
   - SwayNotificationCenter

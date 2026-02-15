@@ -112,6 +112,28 @@ ansible-playbook -i inventories/lab/hosts.yml playbooks/validate.yml
 - Disable Hyprland COPR if needed via `hyprland_enable_copr: false` in `inventories/lab/group_vars/hyprland.yml`.
 - `ansible.cfg` uses `ssh_connection.usetty=False` to avoid OSC 3008 escape-sequence noise in module JSON output.
 
+## VPN Profile Import (nmcli)
+- The OSCP launcher VPN toggle (`SUPER+R` -> `VPN: toggle connection`) uses NetworkManager profiles from `nmcli`, not raw config files.
+- Import each config once, then select it from the launcher list.
+
+OpenVPN (`.ovpn`):
+```bash
+nmcli connection import type openvpn file /path/to/lab.ovpn
+```
+
+WireGuard (`.conf`):
+```bash
+nmcli connection import type wireguard file /path/to/lab.conf
+```
+
+Useful commands:
+```bash
+nmcli -t -f NAME,TYPE connection show | grep -E ':(vpn|wireguard)$'
+nmcli connection show --active
+nmcli connection up id "<profile-name>"
+nmcli connection down id "<profile-name>"
+```
+
 ## Waybar Behavior
 - Config files:
   - `~/.config/waybar/config.jsonc`
@@ -131,9 +153,35 @@ ansible-playbook -i inventories/lab/hosts.yml playbooks/validate.yml
 - VPN module behavior:
   - Detects active `tun/tap/wg/ppp` interfaces
   - Shows connected/disconnected state with color cues
-  - Click opens `nmtui`
+  - Click disconnects active VPN, or opens a `wofi` picker to connect a saved `nmcli` VPN/WireGuard profile
 - Public IP module behavior:
   - Polls egress IP every 5 minutes
   - Click shows a one-shot IP check in `foot`
 - Clock behavior:
   - No click action configured
+
+## Hyprland Keybindings (Non-default)
+- Modifier: `SUPER` (`$mainMod`)
+- `SUPER+RETURN`: open terminal (`foot`)
+- `SUPER+P`: app launcher (`wofi --show drun`)
+- `SUPER+D`: app launcher (`wofi --show drun`)
+- `SUPER+R`: OSCP launcher (`~/.local/bin/wofi-oscp`)
+- `SUPER+TAB`: switch to previous workspace
+- `SUPER+SPACE`: toggle special workspace (`magic`)
+- `SUPER+SHIFT+SPACE`: move active window to special workspace (`magic`)
+- `SUPER+SHIFT+S`: region screenshot to `swappy` flow (`grim` + `slurp`)
+- `SUPER+SHIFT+W`: cycle wallpapers (every image in `~/.local/share/wallpapers`, sorted by filename -> repeat)
+- `SUPER+B`: toggle Waybar visibility (`pkill -USR1 waybar`)
+- `SUPER+Q`: close active window
+- `SUPER+SHIFT+E`: exit Hyprland session
+- `SUPER+F`: toggle fullscreen
+- `SUPER+V`: toggle floating mode for active window
+- `SUPER+L`: lock screen (`hyprlock`) and also mapped to focus-right (conflicting bind in current config)
+- `SUPER+1..9`: switch to workspace 1..9
+- `SUPER+SHIFT+1..9`: move active window to workspace 1..9
+- `SUPER+H`: move focus left
+- `SUPER+L`: move focus right (conflicts with lock bind above)
+- `SUPER+K`: move focus up
+- `SUPER+J`: move focus down
+- `SUPER+Left Mouse`: move window (drag)
+- `SUPER+Right Mouse`: resize window (drag)

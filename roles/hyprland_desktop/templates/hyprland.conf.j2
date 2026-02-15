@@ -8,6 +8,8 @@ exec-once = {{ hyprland_polkit_agent_command }}
 exec-once = [workspace special:magic silent] {{ hyprland_scratchpad_terminal | default("foot --app-id scratchpad-term") }}
 # UTM/SPICE dynamic resolution: keep exactly one user agent in Hyprland sessions.
 exec-once = /home/{{ primary_user }}/.local/bin/spice-vdagent-hyprland.sh
+exec-once = hyprpaper
+exec-once = /home/{{ primary_user }}/.local/bin/wallpaper apply
 
 input {
     kb_layout = us
@@ -50,6 +52,7 @@ bind = $mainMod, TAB, workspace, previous
 bind = $mainMod, SPACE, togglespecialworkspace, magic
 bind = $mainMod SHIFT, SPACE, movetoworkspace, special:magic
 bind = $mainMod SHIFT, S, exec, {{ hyprland_screenshot_cmd }}
+bind = $mainMod SHIFT, W, exec, /home/{{ primary_user }}/.local/bin/wallpaper toggle
 bind = $mainMod, B, exec, pkill -USR1 waybar
 bind = $mainMod, Q, killactive,
 bind = $mainMod SHIFT, E, exit,

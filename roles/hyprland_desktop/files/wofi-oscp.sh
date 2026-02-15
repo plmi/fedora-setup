@@ -66,6 +66,7 @@ need_target() {
 choose() {
   printf '%s\n' \
     "Target: set/update" \
+    "VPN: toggle connection" \
     "Recon: nmap quick (top 1000)" \
     "Recon: nmap full (-p-)" \
     "Web: feroxbuster (http)" \
@@ -78,9 +79,6 @@ choose() {
     "Notes: new target note" \
     "Notes: open notes dir" \
     "Report: capture evidence screenshot" \
-    "Copy: nmap quick command" \
-    "Copy: nmap full command" \
-    "Copy: feroxbuster command" \
   | wofi --dmenu --prompt "OSCP" --insensitive --cache-file /dev/null
 }
 
@@ -202,12 +200,47 @@ copy_cmd() {
   fi
 }
 
+toggle_vpn_connection() {
+  if ! command -v nmcli >/dev/null 2>&1; then
+    show_msg "nmcli is not installed."
+    return 0
+  fi
+
+  ACTIVE_VPN="$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | awk -F: '$2=="vpn" || $2=="wireguard" {print $1; exit}' || true)"
+  if [ -n "${ACTIVE_VPN:-}" ]; then
+    if nmcli connection down id "$ACTIVE_VPN" >/dev/null 2>&1; then
+      show_msg "VPN disconnected: $ACTIVE_VPN"
+    else
+      show_msg "Failed to disconnect VPN: $ACTIVE_VPN"
+    fi
+    return 0
+  fi
+
+  VPN_CHOICES="$(nmcli -t -f NAME,TYPE connection show 2>/dev/null | awk -F: '$2=="vpn" || $2=="wireguard" {print $1}' || true)"
+  if [ -z "${VPN_CHOICES:-}" ]; then
+    show_msg "No VPN/WireGuard NetworkManager profiles found."
+    return 0
+  fi
+
+  VPN_NAME="$(printf '%s\n' "$VPN_CHOICES" | wofi --dmenu --prompt 'VPN profile' --insensitive --cache-file /dev/null || true)"
+  [ -z "${VPN_NAME:-}" ] && return 0
+
+  if nmcli connection up id "$VPN_NAME" >/dev/null 2>&1; then
+    show_msg "VPN connected: $VPN_NAME"
+  else
+    show_msg "Failed to connect VPN: $VPN_NAME"
+  fi
+}
+
 ACTION="$(choose || true)"
 [ -z "${ACTION:-}" ] && exit 0
 
 case "$ACTION" in
   "Target: set/update")
     set_target
+    ;;
+  "VPN: toggle connection")
+    toggle_vpn_connection
     ;;
   "Recon: nmap quick (top 1000)")
     need_target
@@ -253,17 +286,5 @@ case "$ACTION" in
     ;;
   "Report: capture evidence screenshot")
     capture_evidence
-    ;;
-  "Copy: nmap quick command")
-    need_target
-    copy_cmd "nmap -sC -sV -Pn --top-ports 1000 $IP -oA $SCANS_DIR/${IP}_quick"
-    ;;
-  "Copy: nmap full command")
-    need_target
-    copy_cmd "nmap -sC -sV -Pn -p- $IP -oA $SCANS_DIR/${IP}_full"
-    ;;
-  "Copy: feroxbuster command")
-    need_target
-    copy_cmd "feroxbuster -u http://$IP -o $SCANS_DIR/${IP}_ferox.txt"
     ;;
 esac
