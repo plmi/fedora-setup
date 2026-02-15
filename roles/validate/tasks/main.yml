@@ -15,6 +15,7 @@
     - zsh
     - tmux
     - nvim
+    - shellcheck
     - grim
     - slurp
     - swappy

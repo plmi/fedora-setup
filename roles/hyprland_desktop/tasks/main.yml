@@ -33,10 +33,22 @@
     - .config/hypr
     - .config/waybar
     - .config/waybar/scripts
+    - .config/swaync
     - .config/wofi
     - .config/swappy
     - .config/autostart
     - .local/bin
+
+- name: Ensure OSCP workspace directories exist
+  ansible.builtin.file:
+    path: "/home/{{ primary_user }}/{{ item }}"
+    state: directory
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
+  loop:
+    - oscp
+    - oscp/targets
 
 - name: Deploy hyprland config
   ansible.builtin.template:
@@ -45,6 +57,14 @@
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0644"
+
+- name: Deploy OSCP wofi launcher
+  ansible.builtin.copy:
+    src: wofi-oscp.sh
+    dest: "/home/{{ primary_user }}/.local/bin/wofi-oscp"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0755"
 
 - name: Deploy waybar config
   ansible.builtin.template:
@@ -55,36 +75,52 @@
     mode: "0644"
 
 - name: Deploy waybar style
-  ansible.builtin.template:
-    src: waybar.css.j2
+  ansible.builtin.copy:
+    src: waybar.css
     dest: "/home/{{ primary_user }}/.config/waybar/style.css"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0644"
 
 - name: Deploy waybar VPN status script
-  ansible.builtin.template:
-    src: waybar-vpn-status.sh.j2
+  ansible.builtin.copy:
+    src: waybar-vpn-status.sh
     dest: "/home/{{ primary_user }}/.config/waybar/scripts/vpn-status.sh"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0755"
 
 - name: Deploy waybar target status script
-  ansible.builtin.template:
-    src: waybar-target-status.sh.j2
+  ansible.builtin.copy:
+    src: waybar-target-status.sh
     dest: "/home/{{ primary_user }}/.config/waybar/scripts/target-status.sh"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0755"
 
 - name: Deploy waybar public IP script
-  ansible.builtin.template:
-    src: waybar-public-ip.sh.j2
+  ansible.builtin.copy:
+    src: waybar-public-ip.sh
     dest: "/home/{{ primary_user }}/.config/waybar/scripts/public-ip.sh"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
     mode: "0755"
+
+- name: Deploy swaync config
+  ansible.builtin.copy:
+    src: swaync-config.json
+    dest: "/home/{{ primary_user }}/.config/swaync/config.json"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+
+- name: Deploy swaync style
+  ansible.builtin.copy:
+    src: swaync-style.css
+    dest: "/home/{{ primary_user }}/.config/swaync/style.css"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
 
 - name: Deploy wofi config
   ansible.builtin.template:
@@ -95,8 +131,8 @@
     mode: "0644"
 
 - name: Deploy wofi style
-  ansible.builtin.template:
-    src: wofi/style.css.j2
+  ansible.builtin.copy:
+    src: wofi/style.css
     dest: "/home/{{ primary_user }}/.config/wofi/style.css"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"
@@ -119,8 +155,8 @@
     mode: "0755"
 
 - name: Override desktop autostart for spice-vdagent to avoid duplicate agents
-  ansible.builtin.template:
-    src: spice-vdagent.desktop.j2
+  ansible.builtin.copy:
+    src: spice-vdagent.desktop
     dest: "/home/{{ primary_user }}/.config/autostart/spice-vdagent.desktop"
     owner: "{{ primary_user }}"
     group: "{{ primary_user }}"

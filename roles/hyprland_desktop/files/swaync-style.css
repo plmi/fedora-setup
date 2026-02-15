@@ -1,0 +1,118 @@
+@define-color cc-bg rgba(10, 14, 22, 0.96);
+@define-color cc-border rgba(52, 200, 255, 0.45);
+@define-color card-bg rgba(20, 28, 42, 0.98);
+@define-color card-hover rgba(28, 40, 60, 0.99);
+@define-color text #f0f6ff;
+@define-color subtext #b8cbe0;
+@define-color accent #34c8ff;
+@define-color urgent #ff5e5e;
+
+* {
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 13px;
+}
+
+.control-center {
+  background: @cc-bg;
+  border: 2px solid @cc-border;
+  border-radius: 16px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+}
+
+.control-center .notification-row .notification-background {
+  padding: 6px 10px;
+}
+
+.notification-row .notification-background .notification {
+  background: @card-bg;
+  border: 2px solid rgba(52, 200, 255, 0.34);
+  border-radius: 14px;
+  color: @text;
+}
+
+.floating-notifications .notification-row .notification-background .notification {
+  background: linear-gradient(145deg, rgba(22, 34, 54, 0.99), rgba(12, 20, 34, 0.99));
+  border: 2px solid rgba(52, 200, 255, 0.58);
+  border-radius: 16px;
+  color: @text;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.52), 0 0 16px rgba(52, 200, 255, 0.22);
+}
+
+.notification-row .notification-background .notification:hover {
+  background: @card-hover;
+}
+
+.notification-row .notification-background .close-button {
+  background: rgba(240, 246, 255, 0.14);
+  color: @text;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 200, 255, 0.42);
+  min-width: 24px;
+  min-height: 24px;
+  margin-top: 6px;
+  margin-right: 6px;
+}
+
+.notification-row .notification-background .close-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.notification .notification-default-action,
+.notification .notification-action {
+  background: transparent;
+  color: @text;
+  border: none;
+}
+
+.notification .notification-default-action:hover,
+.notification .notification-action:hover {
+  background: rgba(52, 200, 255, 0.2);
+}
+
+.notification .notification-default-action .summary {
+  font-weight: 800;
+  color: @text;
+}
+
+.notification .notification-default-action .body,
+.notification .notification-default-action .time {
+  color: @subtext;
+}
+
+.floating-notifications .notification .notification-default-action .summary {
+  color: #f5fbff;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+.floating-notifications .notification .notification-default-action .body {
+  color: #d6e6f7;
+  font-size: 14px;
+}
+
+.notification.critical {
+  border: 1px solid rgba(255, 107, 107, 0.5);
+}
+
+.floating-notifications .notification.critical {
+  border: 2px solid rgba(255, 94, 94, 0.75);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.52), 0 0 18px rgba(255, 94, 94, 0.22);
+}
+
+.widget-title,
+.widget-dnd {
+  color: @text;
+  padding: 8px 10px;
+}
+
+.widget-title button,
+.widget-dnd>switch {
+  background: rgba(127, 179, 255, 0.18);
+  border: 1px solid rgba(127, 179, 255, 0.24);
+  border-radius: 8px;
+  color: @text;
+}
+
+.widget-title button:hover {
+  background: rgba(127, 179, 255, 0.32);
+}

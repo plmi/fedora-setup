@@ -30,3 +30,4 @@ hyprland_launcher: wofi --show drun
 hyprland_screenshot_cmd: grim -g "$(slurp)" - | swappy -f -
 hyprland_monitor_scale: 2
 hyprland_disable_qtutils_warning: true
+hyprland_oscp_launcher_command: /home/{{ primary_user }}/.local/bin/wofi-oscp

@@ -1,12 +1,14 @@
 #!/usr/bin/env sh
 set -eu
 
-TARGET_FILE="${HOME}/.target"
+TARGET_IP_FILE="${HOME}/.target"
+TARGET_NAME_FILE="${HOME}/.target_name"
 
 usage() {
   cat <<'EOF'
 Usage:
-  target <ip-or-name>   Set current target
+  target <ip> [name]    Set current target IP and optional machine/lab name
+  target --name <name>  Update machine/lab name for current target
   target --show         Show current target
   target --clear        Clear current target
 EOF
@@ -14,15 +16,23 @@ EOF
 
 case "${1:-}" in
   --show|-s)
-    if [ -f "$TARGET_FILE" ]; then
-      head -n1 "$TARGET_FILE"
-    else
-      echo "unset"
-    fi
+    IP="unset"
+    NAME="unset"
+    [ -f "$TARGET_IP_FILE" ] && IP="$(head -n1 "$TARGET_IP_FILE")"
+    [ -f "$TARGET_NAME_FILE" ] && NAME="$(head -n1 "$TARGET_NAME_FILE")"
+    echo "IP: $IP"
+    echo "Name: $NAME"
+    exit 0
+    ;;
+  --name)
+    [ "${2:-}" ] || { usage; exit 1; }
+    printf '%s\n' "$2" > "$TARGET_NAME_FILE"
+    echo "Target name set: $2"
     exit 0
     ;;
   --clear|-c)
-    printf 'unset\n' > "$TARGET_FILE"
+    printf 'unset\n' > "$TARGET_IP_FILE"
+    printf 'unset\n' > "$TARGET_NAME_FILE"
     echo "Target cleared"
     exit 0
     ;;
@@ -32,5 +42,11 @@ case "${1:-}" in
     ;;
 esac
 
-printf '%s\n' "$1" > "$TARGET_FILE"
-echo "Target set: $1"
+printf '%s\n' "$1" > "$TARGET_IP_FILE"
+if [ -n "${2:-}" ]; then
+  printf '%s\n' "$2" > "$TARGET_NAME_FILE"
+  echo "Target set: $1 ($2)"
+else
+  printf 'unset\n' > "$TARGET_NAME_FILE"
+  echo "Target set: $1"
+fi

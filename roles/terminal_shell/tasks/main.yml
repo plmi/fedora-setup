@@ -166,6 +166,15 @@
     force: false
     content: "unset\n"
 
+- name: Ensure target name file exists
+  ansible.builtin.copy:
+    dest: "/home/{{ primary_user }}/.target_name"
+    owner: "{{ primary_user }}"
+    group: "{{ primary_user }}"
+    mode: "0644"
+    force: false
+    content: "unset\n"
+
 - name: Install minimal .zshrc
   ansible.builtin.copy:
     dest: "/home/{{ primary_user }}/.zshrc"
@@ -190,16 +199,31 @@
           unset IP
         fi
       fi
+      if [ -f "$HOME/.target_name" ]; then
+        TARGET_NAME="$(head -n1 "$HOME/.target_name" | tr -d '\r')"
+        if [ -n "$TARGET_NAME" ] && [ "$TARGET_NAME" != "unset" ]; then
+          export TARGET_NAME
+        else
+          unset TARGET_NAME
+        fi
+      fi
 
       # Wrapper keeps ~/.target and $IP in sync in the current shell.
       target() {
         if command target "$@"; then
           local new_ip
+          local new_target_name
           new_ip="$(head -n1 "$HOME/.target" 2>/dev/null | tr -d '\r')"
           if [ -n "$new_ip" ]; then
             export IP="$new_ip"
           else
             unset IP
+          fi
+          new_target_name="$(head -n1 "$HOME/.target_name" 2>/dev/null | tr -d '\r')"
+          if [ -n "$new_target_name" ] && [ "$new_target_name" != "unset" ]; then
+            export TARGET_NAME="$new_target_name"
+          else
+            unset TARGET_NAME
           fi
         fi
       }

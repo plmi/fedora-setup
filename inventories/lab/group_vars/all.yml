@@ -42,6 +42,7 @@ base_packages:
   - tar
   - gcc
   - make
+  - ShellCheck
   - flatpak
 
 obsidian_enable: true
