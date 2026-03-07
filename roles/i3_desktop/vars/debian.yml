@@ -6,7 +6,6 @@ _i3_packages:
   - rofi
   - feh
   - xwallpaper
-  - shuf
   - picom
   - dunst
   - xclip
