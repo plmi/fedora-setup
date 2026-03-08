@@ -21,3 +21,141 @@
   when: obsidian_enable | default(true) | bool
   tags: [obsidian]
   ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Remove abandoned webext-browserpass distro package
+  ansible.builtin.package:
+    name: webext-browserpass
+    state: absent
+  when: ansible_os_family == 'Debian'
+  tags: [firefox, browserpass]
+
+- name: Install Firefox
+  ansible.builtin.package:
+    name: "{{ _firefox_package }}"
+    state: present
+  tags: [firefox, browserpass]
+
+- name: Set browserpass architecture fact
+  ansible.builtin.set_fact:
+    _browserpass_arch: "{{ {'x86_64': 'linux64', 'aarch64': 'arm64'}[ansible_architecture] }}"
+  tags: [firefox, browserpass]
+
+- name: Install browserpass-native from GitHub release
+  when: not ansible_check_mode
+  tags: [firefox, browserpass]
+  block:
+    - name: Fetch latest browserpass-native release metadata
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/browserpass/browserpass-native/releases/latest
+        method: GET
+        return_content: true
+      register: _browserpass_release
+
+    - name: Set browserpass release facts
+      ansible.builtin.set_fact:
+        _browserpass_version: "{{ _browserpass_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Set browserpass asset facts
+      ansible.builtin.set_fact:
+        _browserpass_asset_name: "browserpass-{{ _browserpass_arch }}-{{ _browserpass_version }}.tar.gz"
+        _browserpass_archive: "/tmp/browserpass-{{ _browserpass_arch }}-{{ _browserpass_version }}.tar.gz"
+        _browserpass_extract_dir: "/tmp/browserpass-native-release"
+
+    - name: Set browserpass asset URL
+      ansible.builtin.set_fact:
+        _browserpass_asset_url: >-
+          {{
+            _browserpass_release.json.assets
+            | selectattr('name', 'equalto', _browserpass_asset_name)
+            | map(attribute='browser_download_url')
+            | list
+            | first
+          }}
+
+    - name: Check currently installed browserpass version
+      ansible.builtin.command: "/usr/bin/browserpass-{{ _browserpass_arch }} --version"
+      register: _browserpass_installed_cmd
+      changed_when: false
+      failed_when: false
+
+    - name: Parse installed browserpass version
+      ansible.builtin.set_fact:
+        _browserpass_installed_version: "{{ _browserpass_installed_cmd.stdout | regex_search('[0-9]+\\.[0-9]+\\.[0-9]+') | default('') }}"
+
+    - name: Prepare browserpass extraction directory
+      ansible.builtin.file:
+        path: "{{ _browserpass_extract_dir }}"
+        state: directory
+        mode: "0755"
+      when: _browserpass_installed_version != _browserpass_version
+
+    - name: Download browserpass-native archive
+      ansible.builtin.get_url:
+        url: "{{ _browserpass_asset_url }}"
+        dest: "{{ _browserpass_archive }}"
+        mode: "0644"
+      when: _browserpass_installed_version != _browserpass_version
+
+    - name: Extract browserpass-native archive
+      ansible.builtin.unarchive:
+        src: "{{ _browserpass_archive }}"
+        dest: "{{ _browserpass_extract_dir }}"
+        remote_src: true
+      when: _browserpass_installed_version != _browserpass_version
+
+    - name: Configure browserpass binary path in manifests
+      ansible.builtin.command:
+        cmd: "make BIN=browserpass-{{ _browserpass_arch }} configure"
+        chdir: "{{ _browserpass_extract_dir }}/browserpass-{{ _browserpass_arch }}-{{ _browserpass_version }}"
+      when: _browserpass_installed_version != _browserpass_version
+
+    - name: Install browserpass-native binary and support files
+      ansible.builtin.command:
+        cmd: "make BIN=browserpass-{{ _browserpass_arch }} install"
+        chdir: "{{ _browserpass_extract_dir }}/browserpass-{{ _browserpass_arch }}-{{ _browserpass_version }}"
+      when: _browserpass_installed_version != _browserpass_version
+
+- name: Install Firefox native messaging host manifest for browserpass
+  ansible.builtin.copy:
+    dest: /usr/lib/mozilla/native-messaging-hosts/com.github.browserpass.native.json
+    owner: root
+    group: root
+    mode: "0644"
+    force: true
+    content: |
+      {
+          "name": "com.github.browserpass.native",
+          "description": "Browserpass native component for the Firefox extension",
+          "path": "/usr/bin/browserpass-{{ _browserpass_arch }}",
+          "type": "stdio",
+          "allowed_extensions": ["browserpass@maximbaz.com"]
+      }
+  tags: [firefox, browserpass]
+
+- name: Ensure Firefox policy directory exists
+  ansible.builtin.file:
+    path: "{{ _firefox_policy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [firefox, browserpass]
+
+- name: Deploy Firefox enterprise policy to force-install browserpass extension
+  ansible.builtin.copy:
+    dest: "{{ _firefox_policy_dir }}/policies.json"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {
+        "policies": {
+          "ExtensionSettings": {
+            "browserpass@maximbaz.com": {
+              "install_url": "https://addons.mozilla.org/firefox/downloads/latest/browserpass-ce/addon-latest.xpi",
+              "installation_mode": "force_installed"
+            }
+          }
+        }
+      }
+  tags: [firefox, browserpass]

@@ -6,6 +6,7 @@
         - "{{ ansible_distribution | lower }}.yml"
         - "{{ ansible_os_family | lower }}.yml"
       paths: ["{{ role_path }}/vars"]
+  tags: always
 
 - name: Run OS-specific tasks
   ansible.builtin.include_tasks: "{{ item }}"
@@ -16,4 +17,4 @@
       paths: ["{{ role_path }}/tasks"]
 
 - name: Run common tasks
-  ansible.builtin.include_tasks: install_common.yml
+  ansible.builtin.import_tasks: install_common.yml

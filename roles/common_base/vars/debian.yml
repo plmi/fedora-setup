@@ -1,4 +1,7 @@
 ---
+_firefox_policy_dir: /usr/lib/firefox-esr/distribution
+_firefox_package: firefox-esr
+
 _base_packages:
   - git
   - stow
@@ -26,3 +29,7 @@ _base_packages:
   - gcc
   - make
   - shellcheck
+  - firefox-esr
+  - pass
+  - gnupg
+  - pinentry-curses

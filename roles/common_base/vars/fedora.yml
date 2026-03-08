@@ -1,4 +1,7 @@
 ---
+_firefox_policy_dir: /usr/lib64/firefox/distribution
+_firefox_package: firefox
+
 _base_packages:
   - git
   - stow
@@ -28,3 +31,7 @@ _base_packages:
   - make
   - ShellCheck
   - flatpak
+  - firefox
+  - pass
+  - gnupg
+  - pinentry

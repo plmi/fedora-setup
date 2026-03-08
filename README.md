@@ -199,6 +199,54 @@ ansible-playbook -i inventories/lab/hosts.yml playbooks/validate.yml
 - Ansible installs packages/services and applies dotfiles — it does not template overlapping dotfiles.
 - `ansible.cfg` sets `ssh_connection.usetty=False` to avoid OSC 3008 escape-sequence noise.
 
+## Manual Post-Install Steps
+
+These steps cannot be automated and must be performed once per machine after running the playbooks.
+
+### GPG Key
+
+Import your private key and set trust level:
+
+```bash
+# On the control machine — export your key to a file
+gpg --export-secret-keys --armor > private-key.asc
+
+# Copy to the target host and import
+scp private-key.asc user@host:~
+ssh user@host
+gpg --import ~/private-key.asc
+rm ~/private-key.asc
+```
+
+Set ultimate trust for the imported key:
+
+```bash
+gpg --edit-key <KEY_ID>
+# Inside the gpg prompt:
+trust
+5
+y
+quit
+```
+
+### Password Store
+
+Clone your existing `pass` store:
+
+```bash
+git clone <your-pass-store-repo> ~/.password-store
+```
+
+Or initialize a new one:
+
+```bash
+pass init <GPG_KEY_ID>
+```
+
+### Browserpass
+
+Browserpass is fully installed by Ansible (native host + Firefox extension). It works once the GPG key is imported and `~/.password-store` is populated. No additional setup needed.
+
 ## VPN Profile Import (nmcli)
 
 Ansible installs `openvpn`, `wireguard-tools`, and the Network Manager plugins, and creates
